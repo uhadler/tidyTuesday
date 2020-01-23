@@ -1,0 +1,71 @@
+---
+title: "Untitled"
+author: "Uwe Hader"
+date: "23 1 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(scales)
+library(extrafont)
+library(ggiraphExtra)
+library(gganimate)
+theme_set(theme_minimal())
+
+spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv')
+
+loadfonts(device="win")
+```
+
+
+```{r dfs, include=FALSE}
+
+df <- spotify_songs %>%
+  select(track_album_release_date, danceability:duration_ms) %>%
+  mutate(year = as.integer(substr(track_album_release_date, 0, 4)),
+         danceability = rescale(danceability),
+         energy = rescale(energy),
+         tempo = rescale(tempo),
+         valence = rescale(valence),
+         loudness = rescale(loudness),
+         duration = rescale(duration_ms))
+
+plotdf <- df %>% 
+  filter(year >= 1970) %>%
+  group_by(year) %>%
+  summarise(Danceability = mean(danceability),
+            Energy = mean(energy),
+            Tempo = mean(tempo),
+            Length = mean(duration),
+            Valence = mean(valence),
+            Loudness = mean(loudness))
+```
+
+```{r plot, echo=FALSE}
+
+#TODO: line thickness, geom_line(size = X) misses a few lines
+anim <- ggRadar(data = plotdf, aes(group = year), size = 2, ylim = 1.02) +
+  scale_color_gradient(low="#62bba5", high="#62bba5") + scale_fill_gradient(low="#62bba5", high="#62bba5") +
+  theme(legend.position = "none",
+        text = element_text(family="Calibri"),
+        plot.title = element_text(face="bold", size=14),
+        plot.subtitle = element_text(size=12),
+        axis.text.y = element_text(face="bold"),
+        axis.text.x = element_text(face="bold", size = 10),
+        axis.title.x = element_text(hjust = 0),
+        axis.title.y = element_blank()) +
+  labs(title = "How music changes over time",
+       subtitle = "An animation of different song metrics from 1970 to 2020. Variables have been \nnormalized to a 0 to 1 range.",
+       caption = "Visualization: Uwe Hadler | #TidyTuesday 2020 Week 4 | Source: Spotifyr",
+       x = "Year: {frame_time}") +
+  transition_time(year) + shadow_mark(alpha=0.1, size=0.5, colour = "grey", fill = "#FFFFFF")
+
+#TODO: fix save path  
+anim_save(path = file.path("E:/Rumspielerei/TidyTuesday/output/"),
+          filename="2020-01-23__spotifyr_radar.gif",
+          animation = anim)
+```
+
