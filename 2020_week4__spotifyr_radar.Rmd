@@ -46,8 +46,7 @@ plotdf <- df %>%
 
 ```{r plot, echo=FALSE}
 
-#TODO: line thickness, geom_line(size = X) misses a few lines
-anim <- ggRadar(data = plotdf, aes(group = year), size = 2, ylim = 1.02) +
+anim <- ggRadar(data = plotdf, aes(group = year), size = 3, ylim = 1.02) +
   scale_color_gradient(low="#62bba5", high="#62bba5") + scale_fill_gradient(low="#62bba5", high="#62bba5") +
   theme(legend.position = "none",
         text = element_text(family="Calibri"),
@@ -58,12 +57,11 @@ anim <- ggRadar(data = plotdf, aes(group = year), size = 2, ylim = 1.02) +
         axis.title.x = element_text(hjust = 0),
         axis.title.y = element_blank()) +
   labs(title = "How music changes over time",
-       subtitle = "An animation of different song metrics from 1970 to 2020. Variables have been \nnormalized to a 0 to 1 range.",
+       subtitle = "An animation of different song metrics from 1970 to 2020. Variables have\nbeen normalized to a 0 to 1 range.",
        caption = "Visualization: Uwe Hadler | #TidyTuesday 2020 Week 4 | Source: Spotifyr",
        x = "Year: {frame_time}") +
   transition_time(year) + shadow_mark(alpha=0.1, size=0.5, colour = "grey", fill = "#FFFFFF")
 
-#TODO: fix save path  
 anim_save(path = file.path("E:/Rumspielerei/TidyTuesday/output/"),
           filename="2020-01-23__spotifyr_radar.gif",
           animation = anim)
