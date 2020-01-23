@@ -1,0 +1,71 @@
+---
+title: "2020_week4__spotifyr"
+author: "Uwe Hader"
+date: "23 1 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(scales)
+library(extrafont)
+
+spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv')
+
+loadfonts(device="win")
+```
+
+
+```{r dfs, include=FALSE}
+
+df <- spotify_songs %>%
+  filter(playlist_genre %in% c("edm", "latin")) %>%
+  select(playlist_genre, playlist_subgenre, danceability, energy, loudness,
+         acousticness, valence, tempo) %>% 
+  mutate(danceability = rescale(danceability),
+         energy = rescale(energy),
+         loudness = rescale(loudness),
+         acousticness = rescale(acousticness),
+         valence = rescale(valence),
+         tempo = rescale(tempo),
+         tropical = ifelse(playlist_subgenre %in% "tropical", 1, 0),
+         tropical = as.factor(tropical)) %>%
+  gather(description, value, danceability:tempo) %>%
+  mutate(description = str_to_title(description))
+  
+  labels <- data.frame(tropical = c(1,0),
+                       description = c("Acousticness", "Acousticness"),
+                       label = c("Tropical House songs", "Similar genres\n (EDM and Latin)"),
+                       color = as.factor(c(1,0)),
+                       x = c(0.5, 0.35),
+                       y= c(3, 7))
+```
+
+```{r plot, echo=FALSE}
+
+ggplot(df) + theme_minimal() + 
+  geom_density(aes(x=value, fill=tropical, color=tropical), size=1) +
+  scale_x_continuous(breaks = breaks_pretty(n = 3)) +
+  scale_y_continuous(breaks = breaks_pretty(n = 5)) +
+  scale_color_manual(values = c(`1` = "#2ecc71", `0` = "#34495e")) +
+  scale_fill_manual(values = c(`1` = "#2ecc71AA", `0` = "#34495eAA")) +
+  facet_wrap(~description, scales="free_y") +
+  theme(legend.position = "none",
+        text = element_text(family = "Calibri"),
+        strip.text.x = element_text(face="bold", size=10),
+        axis.title.y = element_text(size = 15),
+        axis.title.x = element_blank(),
+        plot.title = element_text(face="bold", size = 14)) +
+  geom_text(data=labels, aes(x=x, y=y, label=label, color=color),
+            size = 4, fontface="bold") +
+  labs(x = "", y = "Density",
+       title = "Tropical House songs are slower and more danceable compared to songs in similar genres",
+       subtitle = str_wrap("Tropical house as a genre tends to be more danceable with lower tempo and energy compared to EDM and Latin, while being comparable in most other metrics. Variables have been normalized to a 0 to 1 range.",
+                           width = 120),
+       caption = "Visualization: Uwe Hadler | #TidyTuesday 2020 Week 4 | Source: Spotifyr")
+
+
+ggsave(path = file.path("E:/Rumspielerei/TidyTuesday/output/"), filename="2020-01-23__spotifyr.png", dpi = 300, width = 8, height = 6, type="cairo")
+```
