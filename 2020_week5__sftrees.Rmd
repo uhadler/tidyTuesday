@@ -1,0 +1,47 @@
+---
+title: "2020_week5_sftrees"
+author: "Uwe Hader"
+date: "28 1 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+sf_trees <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-28/sf_trees.csv')
+
+library(tidyverse)
+library(ggplot2)
+library(extrafont)
+
+loadfonts(device="win")
+```
+
+```{r dfs, include=FALSE}
+plotdf <- sf_trees %>%
+  filter(!is.na(latitude), !is.na(longitude), !is.na(caretaker), !is.na(date)) %>%
+  mutate(year = lubridate::year(date),
+         private = ifelse(caretaker %in% "Private", "Private", "Public")) %>%
+  filter(year >= 1969) %>%
+  group_by(private)
+```
+
+
+```{r plot, echo=FALSE}
+ggplot(plotdf) + theme_minimal() + 
+  geom_rect(aes(xmin=2011, xmax=2017, ymin = 0, ymax = 4000), fill="grey", alpha = 0.33) + 
+  geom_bar(aes(x=year), fill="darkgreen") + 
+  geom_text(aes(x= 2013.5, y= 2500, label="Private liability"), color = "black", angle = 90) +
+  facet_wrap(~private) + 
+  labs (x="Year", y="Number of trees planted", 
+        title = "The influence of liability on trees planted",
+        subtitle = str_wrap("San Franciscos switch to private liability (from 2011 to 2017) for trees has made a noticable impact on trees planted by private persons.", 95),
+        caption = "Visualization: Uwe Hadler | #TidyTuesday 2020 Week 5 | Source: San Francisco open data") + 
+  theme(text = element_text(family="Calibri"),
+        plot.title = element_text(face="bold", size=14),
+        plot.subtitle = element_text(size=12),
+        strip.background = element_rect(fill="grey"),
+        strip.text = element_text(size = 10, face="bold"))
+
+ggsave(path = file.path("E:/Rumspielerei/TidyTuesday/output/"), filename="2020-01-28__sftrees.png", dpi = 400, width = 8, height = 6, type="cairo")
+
+```
