@@ -1,0 +1,78 @@
+---
+title: "2020_week6_nfl-attendance"
+author: "Uwe Hader"
+date: "4 2 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+attendance <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-04/attendance.csv')
+standings <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-04/standings.csv')
+games <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-04/games.csv')
+
+library(tidyverse)
+library(ggplot2)
+library(extrafont)
+loadfonts()
+```
+
+```{r dfs, include=FALSE}
+sb_winners <- filter(standings, sb_winner %in% "Won Superbowl") %>%
+  select(team:year)
+
+games_pre <- mutate(games, week=as.numeric(week)) %>%
+  filter(!is.na(week))
+
+winners_att <- right_join(attendance, sb_winners,
+                         by=c("year", "team", "team_name")) %>%
+  left_join(games_pre, by= c("year", "week", "team_name" = "home_team_name"))  %>%
+  select(team:weekly_attendance, home_team_city) %>%
+  left_join(games_pre, by= c("year", "week", "team_name" = "away_team_name")) %>%
+  select(team:weekly_attendance, home_team_city.x, away_team_city) %>%
+  mutate(home = ifelse(is.na(home_team_city.x), "AWAY", "HOME")) %>%
+  filter(!is.na(weekly_attendance), home=="HOME")
+
+labels = sb_winners %>% 
+  mutate(x = 9,
+         y = ifelse(year %in% c(2007, 2011, 2015, 2019),
+                    67500, ifelse(year %in% c(2010, 2012), 
+                                  76000,
+                                  74000)))
+```
+
+```{r plot, echo=FALSE}
+ggplot(winners_att) + theme_minimal() + 
+  geom_line(aes(x=week, y=weekly_attendance, color = team_name), size = 1.2) +
+  geom_point(aes(x=week, y=weekly_attendance, color = team_name), size = 1.5) + 
+  geom_text(data = labels,
+            aes(x=x, y=y, label=paste("Winner: ", team_name,sep=""), color = team_name),
+            fontface = "bold", size = 3) +
+  facet_wrap(~year) + 
+  # color codes per https://teamcolorcodes.com/nfl-team-color-codes/
+  scale_colour_manual(values = c("Broncos" = "#FB4F14",
+                                 "Buccaneers" = "#D50A0A",
+                                 "Chiefs" = "#E31837",
+                                 "Colts" = "#002C5F",
+                                 "Eagles" = "#004C54",
+                                 "Giants" = "#0B2265",
+                                 "Packers" = "#203731",
+                                 "Patriots" = "#002244",
+                                 "Ravens" = "#241773",
+                                 "Saints" = "#D3BC8D",
+                                 "Seahawks" = "#69BE28",
+                                 "Steelers" = "#FFB612")) +
+  labs (x="Year", y="Weekly attendance", 
+        title = "Weekly home attendance of Superbowl winners",
+        subtitle = str_wrap("In the last 20 years, Superbowl-winning teams didn't show much deviation in home attendance during the regular season, as they already are very close to full attendance.", 100),
+        caption = "Visualization: Uwe Hadler | #TidyTuesday 2020 Week 6 | Source: Pro Football Reference") + 
+  theme(text = element_text(family="Calibri"),
+        plot.title = element_text(face="bold", size=14),
+        plot.subtitle = element_text(size=12),
+        strip.background = element_rect(fill = "#a9a9a922", colour = "#00000000"),
+        strip.text = element_text(size = 10, face="bold"),
+        legend.position = "none")
+
+ggsave(path = file.path("E:/Rumspielerei/TidyTuesday/output/"), filename="2020_week6_nfl-attendance.png", dpi = 400, width = 8, height = 6, type="cairo")
+
+```
