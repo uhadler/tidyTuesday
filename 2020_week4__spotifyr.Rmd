@@ -1,6 +1,6 @@
 ---
 title: "2020_week4__spotifyr"
-author: "Uwe Hader"
+author: "Uwe Hadler"
 date: "23 1 2020"
 output: html_document
 ---

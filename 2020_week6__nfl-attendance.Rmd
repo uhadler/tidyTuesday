@@ -1,6 +1,6 @@
 ---
 title: "2020_week6_nfl-attendance"
-author: "Uwe Hader"
+author: "Uwe Hadler"
 date: "4 2 2020"
 output: html_document
 ---

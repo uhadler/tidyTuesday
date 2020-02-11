@@ -1,6 +1,6 @@
 ---
 title: "Untitled"
-author: "Uwe Hader"
+author: "Uwe Hadler"
 date: "11 2 2020"
 output: html_document
 ---
@@ -58,7 +58,7 @@ ggplot(parallel_set, aes(x = x, id = id, split = y, value = value)) + theme_mini
         legend.title = element_blank(),
         panel.grid.major.y = element_blank())
 
-ggsave(path = "output", filename="2020_week7__hotels.png", dpi = 400, width = 10, height = 7, type="cairo")
+ggsave(path = "output", filename="2020-02-11__hotels.png", dpi = 400, width = 10, height = 7, type="cairo")
 
 ```
 
