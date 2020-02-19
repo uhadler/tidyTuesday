@@ -1,0 +1,102 @@
+---
+title: "2020_week8_food-co2"
+author: "Uwe Hadler"
+date: "2/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+food_consumption <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-02-18/food_consumption.csv')
+
+library(tidyverse)
+library(ggplot2)
+library(ggridges)
+library(patchwork)
+library(extrafont)
+theme_set(theme_minimal())
+summary(food_consumption)
+loadfonts()
+
+```
+
+
+```{r dfs}
+
+food <- food_consumption %>% 
+  mutate(cat = ifelse(food_category %in% c("Beef", "Fish", "Lamb & Goat", "Pork", "Poultry"),
+                      "Meat", 
+                      ifelse(food_category %in% c("Milk - inc. cheese", "Eggs"), 
+                             "Animal products",
+                             "Plant based")
+                      )) %>% 
+  group_by(country, cat) %>%
+  summarize(con.sum = sum(consumption),
+            co2.sum = sum(co2_emmission)) %>%
+  mutate(conti = countrycode::countrycode(sourcevar = country,
+                                          origin = "country.name",
+                                          destination = "continent"),
+         region = countrycode::countrycode(sourcevar = country,
+                                           origin = "country.name",
+                                           destination = "region"),
+         cat = fct_relevel(as.factor(cat), "Meat", "Plant based", "Animal products") )
+
+maj_foods <- food %>% 
+  group_by(country) %>%
+  filter(con.sum == max(con.sum)) %>%
+  mutate(maj_cat = cat) %>%
+  select(country, maj_cat)
+
+ov <- food %>%
+  group_by(country, conti, region) %>%
+  summarize(con.sum = sum(con.sum),
+            co2.sum = sum(co2.sum)) %>% 
+  full_join(maj_foods, by="country")
+
+
+```
+
+
+```{r plots, echo=FALSE}
+
+scatter_plot <- ggplot(ov) +
+  geom_point(aes(x=co2.sum, y= con.sum, colour = maj_cat)) + 
+  labs(x="CO2 Emissions (kg/Person/Year)",
+       y = "Total food consumption (kg/Person/Year)",
+       colour = "Majority of consumed food") +
+  theme(text = element_text(family = "Calibri"),
+        legend.position = "bottom")
+
+
+
+
+density_plot <- ggplot(food) + 
+  geom_density_ridges(aes(x=con.sum, y=as.factor(conti),
+                          fill = cat, point_colour = cat), alpha = 0.5, scale = 4/3,
+                      jittered_points = TRUE, point_shape="|",
+                      position = position_points_jitter(height=0),
+                      point_size = 5) + 
+  xlim(NA, 400) + 
+  annotate(geom="text", x= 350, y= 4.7, label = "Finland is cut off for scale\n (440.31kg animal products)") + 
+  annotate(geom="curve", x=350, y=4.5, xend = 395, yend = 4.25, curvature = .2,
+           arrow = arrow(length = unit(1, "mm"))) +
+  labs(x= "Consumption (kg/Person/Year)", y="Continent",
+       fill = "Food category", point_colour = "Food category") + 
+  theme(text=element_text(family="Calibri"),
+        legend.position = "bottom")
+
+
+scatter_plot + density_plot +
+  plot_annotation(title = "Diets and their relation to CO2 Emissions",
+       subtitle = str_wrap("Countries whose diets consist of mainly plant-based ingredients usually emit less carbon dioxide. Meanwhile, very few countries diet largely consist of meat, instead animal products such as cheese and eggs reign supreme and are mainly consumed in Europe and Oceania.", 140),
+       caption = "Visualization: Uwe Hadler | #TidyTuesday 2020 Week 8 | Source: nu3",
+       theme = theme(text = element_text(family="Calibri"),
+                     plot.title = element_text(face="bold", size=14),
+                     plot.subtitle = element_text(size=12),))
+
+ggsave(path = "output", filename="2020_week8_food-co2.png", dpi = 400, width = 16, height = 9, type="cairo")
+
+
+```
+
