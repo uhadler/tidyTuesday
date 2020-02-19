@@ -76,9 +76,9 @@ density_plot <- ggplot(food) +
                           fill = cat, point_colour = cat), alpha = 0.5, scale = 4/3,
                       jittered_points = TRUE, point_shape="|",
                       position = position_points_jitter(height=0),
-                      point_size = 5) + 
+                      point_size = 3) + 
   xlim(NA, 400) + 
-  annotate(geom="text", x= 350, y= 4.7, label = "Finland is cut off for scale\n (440.31kg animal products)") + 
+  annotate(geom="text", x= 350, y= 4.7, size = 3, label = "Finland is cut off for scale\n (440.31kg animal products)") + 
   annotate(geom="curve", x=350, y=4.5, xend = 395, yend = 4.25, curvature = .2,
            arrow = arrow(length = unit(1, "mm"))) +
   labs(x= "Consumption (kg/Person/Year)", y="Continent",
@@ -95,7 +95,7 @@ scatter_plot + density_plot +
                      plot.title = element_text(face="bold", size=14),
                      plot.subtitle = element_text(size=12),))
 
-ggsave(path = "output", filename="2020_week8_food-co2.png", dpi = 400, width = 16, height = 9, type="cairo")
+ggsave(path = "output", filename="2020-02-19__food-co2.png", dpi = 400, width = 12, height = 6, type="cairo")
 
 
 ```
