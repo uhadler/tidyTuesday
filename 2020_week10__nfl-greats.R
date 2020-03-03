@@ -106,6 +106,8 @@ pred_total_plot <- ggplot(pred_total_data) +
         legend.position = "none",
         plot.subtitle = element_text(size = 14))
 
+
+#scatterplot to compare assists and goals over their career
 ga_select <- filter(data, player %in% c("Alex Ovechkin", "Wayne Gretzky", "Gordie Howe"))
 ga_others <- filter(data, !(player %in% c("Alex Ovechkin", "Wayne Gretzky", "Gordie Howe")))
 
