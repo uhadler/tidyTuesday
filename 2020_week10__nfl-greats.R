@@ -123,7 +123,9 @@ ga_plot <- ggplot(ga_others) +
   theme(text = element_text(family="Calibri"), legend.position = "none",
         plot.subtitle = element_text(size = 14))
 
-ageplot / ( pred_total_plot | ga_plot)
+ageplot / ( pred_total_plot | ga_plot) +
+  plot_annotation(caption = "Visualization: Uwe Hadler | #TidyTuesday 2020 Week 10 | Source: The Washington Post") + 
+  theme(plot.caption = element_text(family="Calibri"))
 
 
-ggsave(path = "output", filename="2020-03-03__nfl-greats.png", dpi = 600, width = 12, height = 8, type="cairo")
+ggsave(path = "output", filename="2020-03-03__nfl-greats_caption.png", dpi = 600, width = 12, height = 8, type="cairo")
